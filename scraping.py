@@ -7,7 +7,7 @@ import math
 import pandas as pd
 import shutil
 entrada = ""
-url = "https://www.olx.com.br/estado-mg/regiao-de-montes-claros-e-diamantina?q=guitarra&o=1"
+url = "https://www.olx.com.br/brasil?q=panela+inox&op=2&opst=2&o=1"
 
 headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)\
     Chrome/111.0.0.0 Safari/537.36'}
@@ -21,7 +21,7 @@ if 'de ' in qtd_itens:
     fim = qtd_itens.find('resultados', inicio)
     qtd_itens = qtd_itens[inicio+2:fim]
 
-print(qtd_itens)
+print('Quantidade de itens : ',qtd_itens)
 ultima_pagina = math.ceil(int(qtd_itens.replace('.',''))/50)
 print(ultima_pagina)
 
@@ -32,12 +32,14 @@ if ultima_pagina > 100:
 else:
     rangeMax = ultima_pagina
 
-for i in range (1,rangeMax):
+for i in range (1,rangeMax+1):
+    print('ciclo: ',i)
+    print('range: ',rangeMax)
     nome = ''
-    preco = ''
+    preco = 0
     link = ''
 
-    url = f'https://www.olx.com.br/estado-mg/regiao-de-montes-claros-e-diamantina?q=guitarra&o={i}'
+    url = f'https://www.olx.com.br/brasil?q=panela+inox&op=2&opst=2&o={i}'
     site = requests.get(url,headers=headers)
     soup = BeautifulSoup(site.content, 'html.parser')
 
@@ -45,22 +47,22 @@ for i in range (1,rangeMax):
     #print(cards)
 
     for card in cards:
-        try:
-            nome = card.find('h2', class_=re.compile('horizontal title')).get_text().strip()
-            preco = card.find('h3', class_=re.compile('horizontal price')).get_text().strip()
-            link = card.find_all('a',href=True)
-            for a in link:
-                link = a['href']
-        except :
-            print('produto não encontrado')
+
+        nome = card.find('h2', class_=re.compile('horizontal title')).get_text().strip()
+        preco = card.find('h3', class_=re.compile('horizontal price')).get_text().strip()
+        link = card.find_all('a',href=True)
+        for a in link:
+            link = a['href']
+
+
         print('nome : ',nome)
         print('preco : ',preco)
         print(link)
         print('xxxxxxxxxxxxxxx')
 
         series_produtos['nome'].append(nome)
-        series_produtos['preco'].append(preco)
+        series_produtos['preco'].append(int(preco.replace('R$ ','').replace('.','')))
         series_produtos['link'].append(link)
 df = pd.DataFrame(series_produtos)
-(df.to_excel('.\olxScrap.xlsx'))
+df.to_excel('.\olxScrap.xlsx')
 df.to_csv('olxScrapp.csv')
